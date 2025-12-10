@@ -1,0 +1,10 @@
+docker run --name container1 -p 5432:5432 -e POSTGRES_PASSWORD=secret -d postgres
+docker exec -ti container1 createdb -U postgres url_db
+
+set sqlalchemy.url = postgresql://postgres:secret@localhost:5432/url_db in alembic.ini
+
+python -m alembic upgrade head
+
+use docker exec -it container1 psql -U postgres -d url_db to connect to db
+use \d urls to access columns
+SELECT * FROM urls;
