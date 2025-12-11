@@ -22,6 +22,7 @@ def create_deleter_router(service: UrlService) -> APIRouter:
         "/urls/{code}",
         response_model=ApiSuccess | ApiFailure,
         responses={
+            200: {"model": ApiSuccess, "description": "URL successfully deleted"},
             404: {"model": ApiFailure, "description": "URL not found"},
             400: {"model": ApiFailure, "description": "Invalid request"},
             422: {"model": ApiFailure, "description": "Validation Error"},
