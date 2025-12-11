@@ -23,6 +23,7 @@ def create_poster_router(service: UrlService) -> APIRouter:
         "/urls",
         response_model=ApiSuccess | ApiFailure,
         responses={
+            201: {"model": ApiSuccess,"description": "Short URL successfully created"},
             422: {"model": ApiFailure, "description": "Validation error"},
             500: {"model": ApiFailure, "description": "Internal server error"},
         },
