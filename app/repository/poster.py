@@ -1,4 +1,3 @@
-# poster.py
 from pydantic import AnyHttpUrl
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from sqlalchemy.orm import Session
