@@ -1,12 +1,10 @@
-from typing import Optional
-
 from pydantic import AnyHttpUrl
-
 from typing import Optional
+from fastapi import HTTPException, status
 
 from app.repository.base import UrlRepository
 from app.models.orm import URL
-from fastapi import HTTPException, status
+
 
 class UrlService:
     """Business logic for URL shortener.

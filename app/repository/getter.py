@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+
 from app.models.orm import URL
 
 def get_by_short_code(session_factory, code: str) -> URL | None:

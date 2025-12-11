@@ -53,7 +53,7 @@ def create_deleter_router(service: UrlService) -> APIRouter:
         """Return a success response with the deleted URL."""
         return JSONResponse(
             status_code=status.HTTP_200_OK,
-            content=jsonable_encoder(ApiSuccess(status="success", data=_wrap_url_response(url_obj)))
+            content=jsonable_encoder(ApiSuccess(status="success", data=_wrap_success(url_obj)))
         )
 
     def _return_404() -> JSONResponse:
@@ -77,14 +77,15 @@ def create_deleter_router(service: UrlService) -> APIRouter:
             content=jsonable_encoder(ApiFailure(status="failure", message=f"Internal server error: {message}"))
         )
 
-    def _wrap_url_response(url_obj: Any) -> UrlResponse:
-        """Convert URL object to UrlResponse schema."""
-        return UrlResponse(
-            id=url_obj.id,
-            original_url=url_obj.original_url,
-            short_code=url_obj.short_code,
-            created_at=url_obj.created_at,
-            expired_at=url_obj.expired_at,
-        )
-
     return router
+
+
+def _wrap_success(url_obj: Any) -> UrlResponse:
+    """Convert URL object to UrlResponse schema."""
+    return UrlResponse(
+        id=url_obj.id,
+        original_url=url_obj.original_url,
+        short_code=url_obj.short_code,
+        created_at=url_obj.created_at,
+        expired_at=url_obj.expired_at,
+    )

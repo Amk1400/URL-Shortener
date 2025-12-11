@@ -20,7 +20,7 @@ class Router:
     def _register_routes(self) -> None:
         """Include all route modules with injected service."""
         deleter_router = create_deleter_router(self._service)
-        self._app.include_router(deleter_router)
-        """Include all route modules with injected service."""
         poster_router = create_poster_router(self._service)
+
         self._app.include_router(poster_router)
+        self._app.include_router(deleter_router)

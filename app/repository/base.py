@@ -1,7 +1,7 @@
-from app.repository.deleter import delete_by_short_code as deleter_delete_by_code
-from app.models.orm import URL
 from pydantic import AnyHttpUrl
 
+from app.repository.deleter import delete_by_short_code as deleter_delete_by_code
+from app.models.orm import URL
 from app.repository.poster import create as poster_create
 
 class UrlRepository:
