@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 
+from app.api.routers.getter import create_getter_router
 from app.service.url_service import UrlService
 
 
@@ -19,3 +20,5 @@ class Router:
         TODO get all/ get by id/ delete/ post
         :return:
         """
+        getter_router = create_getter_router(self._service)
+        self._app.include_router(getter_router)
