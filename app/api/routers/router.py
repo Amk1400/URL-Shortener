@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 
+from app.api.routers.deleter import create_deleter_router
 from app.api.routers.poster import create_poster_router
 from app.service.url_service import UrlService
 
@@ -17,6 +18,9 @@ class Router:
         return self._app
 
     def _register_routes(self) -> None:
+        """Include all route modules with injected service."""
+        deleter_router = create_deleter_router(self._service)
+        self._app.include_router(deleter_router)
         """Include all route modules with injected service."""
         poster_router = create_poster_router(self._service)
         self._app.include_router(poster_router)

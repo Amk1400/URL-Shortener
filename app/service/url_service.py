@@ -2,9 +2,11 @@ from typing import Optional
 
 from pydantic import AnyHttpUrl
 
+from typing import Optional
+
 from app.repository.base import UrlRepository
 from app.models.orm import URL
-
+from fastapi import HTTPException, status
 
 class UrlService:
     """Business logic for URL shortener.
@@ -41,3 +43,32 @@ class UrlService:
             return url_obj
         except Exception as e:
             raise RuntimeError(f"Error creating short URL: {repr(e)}")
+
+    def delete_short_url(self, code: str) -> URL:
+        """Delete a shortened URL by code and return the deleted record.
+
+        Args:
+            code (str): Short code to delete.
+
+        Returns:
+            URL: The deleted URL ORM object.
+
+        Raises:
+            HTTPException: 404 if not found, 500 on error.
+        """
+        if not code:
+            raise ValueError("code is required")
+
+        try:
+            url_obj: Optional[URL] = self.repository.delete_by_code(code)
+            if url_obj is None:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="URL not found"
+                )
+            return url_obj
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Error deleting short URL: {repr(e)}"
+            )
