@@ -1,8 +1,9 @@
 from typing import List, Optional, cast
-
 from sqlalchemy import ColumnElement
 from sqlalchemy.orm import Session, Query
 from sqlalchemy.exc import SQLAlchemyError
+
+from app.core.exception import NotFoundError
 from app.models.orm import URL
 
 
@@ -27,6 +28,9 @@ def get_by_code(session_factory, code: str) -> Optional[URL]:
         condition: ColumnElement[bool] = cast(ColumnElement[bool], URL.short_code == code)
 
         result: Optional[URL] = query.filter(condition).first()
+        if not result:
+            raise NotFoundError(f"URL with code {code} not found")
+
         return result
 
     except SQLAlchemyError as exc:

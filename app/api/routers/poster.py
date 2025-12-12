@@ -5,8 +5,6 @@ from app.api.schemas.requests import UrlCreate
 from app.api.schemas.responses import ApiSuccess, ApiFailure
 from app.api.schemas.response_methods import wrap_success_url, res_success, res_500
 
-
-
 def create_poster_router(service: UrlService) -> APIRouter:
     router = APIRouter()
 

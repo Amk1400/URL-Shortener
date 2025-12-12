@@ -1,5 +1,6 @@
 from typing import Optional
 from pydantic import AnyHttpUrl
+
 from app.models.orm import URL
 from app.repository.getter import get_all, get_by_code
 from app.repository.poster import create
