@@ -57,6 +57,3 @@ class UrlService:
         except Exception as e:
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                                 detail=f"Error fetching URL: {repr(e)}")
-
-    def delete_expired_urls(self) -> int:
-        return self.repository.delete_expired()
