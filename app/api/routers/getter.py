@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from fastapi.responses import RedirectResponse
 
 from app.service.url_service import UrlService
@@ -45,6 +45,8 @@ def create_getter_router(service: UrlService) -> APIRouter:
             urls = service.get_all_urls()
             data = [wrap_success_url(u) for u in urls]
             return res_success(data)
+        except HTTPException:
+            raise
         except Exception as exc:
             return res_500(str(exc))
 
@@ -71,6 +73,8 @@ def create_getter_router(service: UrlService) -> APIRouter:
         try:
             url_obj = service.get_original_url(code)
             return RedirectResponse(url=url_obj.original_url, status_code=302)
+        except HTTPException:
+            raise
         except NotFoundError as nf:
             return res_404(str(nf))
         except Exception as exc:

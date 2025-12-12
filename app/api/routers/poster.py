@@ -1,4 +1,4 @@
-from fastapi import APIRouter, status
+from fastapi import APIRouter, status, HTTPException
 
 from app.service.url_service import UrlService
 from app.api.schemas.requests import UrlCreate
@@ -44,6 +44,8 @@ def create_poster_router(service: UrlService) -> APIRouter:
         try:
             obj = service.create_short_url(original_url=request.original_url)
             return res_success(wrap_success_url(obj), status.HTTP_201_CREATED)
+        except HTTPException:
+            raise
         except Exception as exc:
             return res_500(str(exc))
 
