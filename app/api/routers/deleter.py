@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 
 from app.service.url_service import UrlService
 from app.api.schemas.responses import ApiSuccess, ApiFailure
@@ -46,6 +46,8 @@ def create_deleter_router(service: UrlService) -> APIRouter:
         try:
             url_obj = service.delete_short_url(code)
             return res_success(wrap_success_url(url_obj))
+        except HTTPException:
+            raise
         except ValueError as ve:
             return res_400(str(ve))
         except NotFoundError as nf:

@@ -1,18 +1,18 @@
-from fastapi.responses import JSONResponse
-from fastapi import status
+from typing import Any
+from fastapi import HTTPException, status
 from fastapi.encoders import jsonable_encoder
 
 from app.api.schemas.responses import ApiSuccess, ApiFailure, UrlResponse
 
 
-def wrap_success_url(url_obj):
+def wrap_success_url(url_obj: Any) -> UrlResponse:
     """Convert ORM URL to UrlResponse schema.
 
     Args:
-        url_obj: ORM URL object.
+        url_obj (Any): ORM URL object.
 
     Returns:
-        UrlResponse: API schema object.
+        UrlResponse: API response schema.
 
     Raises:
         None
@@ -26,73 +26,94 @@ def wrap_success_url(url_obj):
     )
 
 
-def res_success(data, code=status.HTTP_200_OK):
-    """Return a standardized success JSONResponse.
+def res_success(data: Any, code: int = status.HTTP_200_OK) -> ApiSuccess:
+    """Return success payload.
 
     Args:
-        data: Payload data.
-        code: HTTP status code.
+        data (Any): Payload data.
+        code (int): HTTP status code.
 
     Returns:
-        JSONResponse: Success response.
+        ApiSuccess: Success response body.
 
     Raises:
-        None
+        HTTPException: Used to propagate status code.
     """
-    return JSONResponse(
+    raise HTTPException(
         status_code=code,
-        content=jsonable_encoder(ApiSuccess(status="success", data=data)),
+        detail=jsonable_encoder(
+            ApiSuccess(
+                status="success",
+                data=data,
+            )
+        ),
     )
 
 
-def res_404(msg="URL not found"):
-    """Return a standardized 404 JSONResponse.
+def res_400(msg: str) -> None:
+    """Raise 400 bad request error.
 
     Args:
-        msg (str): Message text.
+        msg (str): Error message.
 
     Returns:
-        JSONResponse: 404 response.
+        None
 
     Raises:
-        None
+        HTTPException: 400 error.
     """
-    return JSONResponse(
-        status_code=status.HTTP_404_NOT_FOUND,
-        content=jsonable_encoder(ApiFailure(status="failure", message=msg)),
-    )
-
-
-def res_400(msg):
-    """Return a standardized 400 JSONResponse.
-
-    Args:
-        msg (str): Message text.
-
-    Returns:
-        JSONResponse: 400 response.
-
-    Raises:
-        None
-    """
-    return JSONResponse(
+    raise HTTPException(
         status_code=status.HTTP_400_BAD_REQUEST,
-        content=jsonable_encoder(ApiFailure(status="failure", message=msg)),
+        detail=jsonable_encoder(
+            ApiFailure(
+                status="failure",
+                message=msg,
+            )
+        ),
     )
 
 
-def res_500(msg):
-    """Return a standardized 500 JSONResponse.
+def res_404(msg: str) -> None:
+    """Raise 404 not found error.
 
     Args:
-        msg (str): Message text.
+        msg (str): Error message.
 
     Returns:
-        JSONResponse: 500 response with internal error message.
+        None
 
     Raises:
-        None
+        HTTPException: 404 error.
     """
-    return JSONResponse(
-        content=jsonable_encoder(ApiFailure(status="failure", message=f"Internal server error: {msg}"))
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail=jsonable_encoder(
+            ApiFailure(
+                status="failure",
+                message=msg,
+            )
+        ),
+    )
+
+
+def res_500(msg: str) -> None:
+    """Raise 500 internal server error.
+
+    Args:
+        msg (str): Error message.
+
+    Returns:
+        None
+
+    Raises:
+        HTTPException: 500 error.
+    """
+    raise HTTPException(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        detail=jsonable_encoder(
+            ApiFailure(
+                status="failure",
+                message=msg,
+            )
+        ),
     )
