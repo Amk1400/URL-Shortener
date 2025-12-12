@@ -13,3 +13,13 @@ def get_all(session_factory) -> list[URL]:
         raise RuntimeError(f"Database error during GET /urls: {repr(exc)}")
     finally:
         session.close()
+
+def get_by_code(session_factory, code: str) -> URL | None:
+    """Fetch URL object by its short_code."""
+    session: Session = session_factory()
+    try:
+        return session.query(URL).filter(URL.short_code == code).first()
+    except SQLAlchemyError as exc:
+        raise RuntimeError(f"Database error while fetching code: {repr(exc)}")
+    finally:
+        session.close()
