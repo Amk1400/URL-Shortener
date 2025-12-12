@@ -1,4 +1,5 @@
 from typing import Any
+from datetime import datetime, timedelta, timezone
 from fastapi import HTTPException, status
 from pydantic import AnyHttpUrl
 
@@ -23,8 +24,9 @@ class UrlService:
 
     def create_short_url(self, original_url: AnyHttpUrl) -> URL:
         _validate_required(original_url, "original_url")
+        expired_at = datetime.now(tz=timezone.utc) + timedelta(minutes=self.ttl_minutes)
         url_obj = _handle_repo_call(
-            lambda: self.repository.create(original_url=original_url),
+            lambda: self.repository.create(original_url=original_url, expired_at=expired_at),
             "creating short URL"
         )
         if url_obj is None:
