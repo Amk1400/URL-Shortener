@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 import schedule
 
 from app.models.orm import URL
+from app.service.url_service import UrlService
 
 
 def delete_expired_urls(session_factory: Callable[[], Session]) -> int:
@@ -41,17 +42,17 @@ class UrlCleanupScheduler:
         scheduler.stop()
     """
 
-    def __init__(self, session_factory: Callable[[], Session], interval_seconds: int = 60):
+    def __init__(self, service: UrlService, interval_seconds: int = 60):
         if interval_seconds < 1:
             raise ValueError("interval_seconds must be >= 1")
-        self._session_factory = session_factory
+        self._service = service
         self._interval = int(interval_seconds)
         self._stop_event = threading.Event()
         self._thread: Optional[threading.Thread] = None
 
     def _job(self):
         try:
-            deleted = delete_expired_urls(self._session_factory)
+            deleted = self._service.delete_expired_urls()
             if deleted:
                 print(f"[UrlCleanupScheduler] deleted {deleted} expired url(s)")
         except Exception as exc:
