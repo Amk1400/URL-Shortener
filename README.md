@@ -1,19 +1,16 @@
 # 📘 README - Midterm Final Checklist
 
-This README **must remain in your repository** and **must be fully completed** before submitting the midterm.
-
 ---
 
 ## 1. API Test Coverage Table
 
-Fill in the second column with the **name of the student** who implemented and tested each API.
 
 | # | API Endpoint / Feature | Implemented & Tested By (Student Name) |
-|---|------------------------|-----------------------------------------|
-| 1 | Create Short Link - **POST /links** | Alice |
-| 2 | Redirect to Original URL - **GET /{code}** | Bob |
-| 3 | Get All Shortened Links - **GET /links** | Alice |
-| 4 | Delete Short Link - **DELETE /links/{code}** | Bob |
+|---|------------------------|----------------------------------------|
+| 1 | Create Short Link - **POST /links** | Kavosh                                 |
+| 2 | Redirect to Original URL - **GET /{code}** | Dorosti                                |
+| 3 | Get All Shortened Links - **GET /links** | Dorosti                                |
+| 4 | Delete Short Link - **DELETE /links/{code}** | Kavosh                                 |
 
 ---
 
@@ -38,7 +35,7 @@ If you implemented the bonus user story, mark the box and complete the required 
 **If checked, fill in the following information:**
 
 - **ENV variable or config key used:** 
- `LINK_TTL_SECONDS=400`
+ `APP_TTL_MINUTES=1440`
 
 You must also ensure this key exists in `.env.example` with a sample value.
 
@@ -47,16 +44,14 @@ You must also ensure this key exists in `.env.example` with a sample value.
 
 Specify the exact location where TTL expiration is checked and expired links are detected/removed.
 
- `services/link_service.py → delete_expired_links()`
+ `services/scheduler/url_remove.py → delete_expired_links()`
 
 - **How TTL cleanup is triggered:** 
-You must write a Command that removes expired links (created_at + TTL < now()).
+stmt = delete(URL).where(URL.created_at < cutoff)
+- 
+implemented: start_background_scheduler(db.get_session, config.ttl_minutes, every_minutes=10) in main.py
 
-Here, write:
 
-- Full file path of the command
-- Command name / execution method
-- Scheduler details
 ---
 
 ## 4. Postman Collection (Required)
@@ -75,17 +70,12 @@ For each route, two screenshots have been added:
 - Successful response (2xx) 
 - Error-handled response (4xx)
 
-Screenshots are located in:
+Screenshots are located in:/postman
 
-‍‍      ‍```
-   /postman
+   
    ```
-
-
-
 ### Naming Example:
 
-```
 postman/
 post-links-201-success.png
 post-links-400-invalid-url.png
@@ -94,14 +84,3 @@ get-code-404-not-found.png
 get-links-200-success.png
 delete-code-200-success.png
 delete-code-404-not-found.png
-```
-
-Filenames must clearly show:
-
-- Route 
-- HTTP status 
-- Success or error 
-
----
-
-**✔️ Make sure this README is fully completed before submission.**
