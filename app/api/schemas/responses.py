@@ -16,7 +16,7 @@ class UrlResponse(BaseModel):
 class ApiSuccess(BaseModel):
     """Success wrapper."""
     status: str = "sucess"
-    data: UrlResponse
+    data: list[UrlResponse] | UrlResponse
 
 
 class ApiFailure(BaseModel):

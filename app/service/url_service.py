@@ -1,7 +1,6 @@
-from pydantic import AnyHttpUrl
 from typing import Optional
 from fastapi import HTTPException, status
-
+from pydantic import AnyHttpUrl
 from app.repository.base import UrlRepository
 from app.models.orm import URL
 
@@ -17,6 +16,8 @@ class UrlService:
     def __init__(self, repository: UrlRepository, ttl_minutes: int = 1440) -> None:
         self.repository = repository
         self.ttl_minutes = ttl_minutes
+        self._ttl = ttl_minutes
+
 
     def create_short_url(self, original_url: AnyHttpUrl) -> URL:
         """Create a shortened URL and persist it.
@@ -70,3 +71,23 @@ class UrlService:
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"Error deleting short URL: {repr(e)}"
             )
+        
+    def get_all_urls(self):
+        """Return all shortened URLs."""
+        try:
+            urls = self.repository.get_all()
+            return urls
+        except Exception as exc:
+            raise RuntimeError(f"Error fetching URLs: {repr(exc)}")
+    def get_original_url(self, code: str) -> URL:
+        """Return URL object for given short code."""
+        if not code:
+            raise ValueError("code is required")
+
+        try:
+            url_obj = self.repository.get_by_code(code)
+            if url_obj is None:
+                raise RuntimeError("URL not found")
+            return url_obj
+        except Exception as e:
+            raise RuntimeError(f"Error fetching URL: {repr(e)}")
