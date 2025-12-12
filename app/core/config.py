@@ -15,7 +15,18 @@ class AppConfig:
 
     @classmethod
     def load(cls) -> "AppConfig":
-        """Load config from environment variables."""
+        """
+        Load config from environment variables.
+
+        Args:
+            None
+
+        Returns:
+            AppConfig: Loaded configuration.
+
+        Raises:
+            ValueError: If TTL is not a valid integer.
+        """
         db_user = os.getenv("DB_USER", "postgres")
         db_password = os.getenv("DB_PASSWORD", "secret")
         db_host = os.getenv("DB_HOST", "localhost")

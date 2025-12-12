@@ -1,4 +1,5 @@
 import uvicorn
+from typing import Tuple
 
 from app.core.config import AppConfig
 from app.repository.base import UrlRepository
@@ -7,7 +8,19 @@ from app.service.url_service import UrlService
 from app.api.routers.router import Router
 from app.service.scheduler.url_remove import start_background_scheduler
 
-def build_router() -> tuple[Router, DatabaseSession, AppConfig]:
+
+def build_router() -> Tuple[Router, DatabaseSession, AppConfig]:
+    """Build router, database session and load configuration.
+
+    Args:
+        None
+
+    Returns:
+        Tuple[Router, DatabaseSession, AppConfig]: Router instance, database session manager and configuration.
+
+    Raises:
+        RuntimeError: If database connection fails via DatabaseSession.
+    """
     config = AppConfig.load()
     db = DatabaseSession(database_url=config.database_url)
     db.connect()
@@ -16,10 +29,23 @@ def build_router() -> tuple[Router, DatabaseSession, AppConfig]:
     router = Router(service=service)
     return router, db, config
 
+
 def main() -> None:
+    """Application entry point; starts scheduler and runs Uvicorn.
+
+    Args:
+        None
+
+    Returns:
+        None
+
+    Raises:
+        None
+    """
     router, db, config = build_router()
     start_background_scheduler(db.get_session, config.ttl_minutes, every_minutes=10)
     uvicorn.run(router.app, host="0.0.0.0", port=8000)
+
 
 if __name__ == "__main__":
     main()

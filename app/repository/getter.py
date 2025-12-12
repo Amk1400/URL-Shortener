@@ -1,4 +1,4 @@
-from typing import List, Optional, cast
+from typing import List, Optional, Callable, cast
 from sqlalchemy import ColumnElement
 from sqlalchemy.orm import Session, Query
 from sqlalchemy.exc import SQLAlchemyError
@@ -7,7 +7,18 @@ from app.core.exception import NotFoundError
 from app.models.orm import URL
 
 
-def get_all(session_factory) -> List[URL] | None:
+def get_all(session_factory: Callable[[], Session]) -> Optional[List[URL]]:
+    """Return all URL records.
+
+    Args:
+        session_factory (Callable[[], Session]): Session factory callable.
+
+    Returns:
+        Optional[List[URL]]: List of URLs or None.
+
+    Raises:
+        RuntimeError: On database errors.
+    """
     session: Session = session_factory()
     try:
         query: Query[URL] = cast(Query[URL], session.query(URL))
@@ -20,7 +31,20 @@ def get_all(session_factory) -> List[URL] | None:
         session.close()
 
 
-def get_by_code(session_factory, code: str) -> Optional[URL]:
+def get_by_code(session_factory: Callable[[], Session], code: str) -> Optional[URL]:
+    """Fetch a URL by its short code.
+
+    Args:
+        session_factory (Callable[[], Session]): Session factory callable.
+        code (str): Short code to lookup.
+
+    Returns:
+        Optional[URL]: URL object if found.
+
+    Raises:
+        NotFoundError: If no matching URL is found.
+        RuntimeError: On database errors.
+    """
     session: Session = session_factory()
     try:
         query: Query[URL] = cast(Query[URL], session.query(URL))

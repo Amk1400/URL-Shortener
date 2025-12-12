@@ -5,7 +5,15 @@ Base = declarative_base()
 
 
 class URL(Base):
+    """ORM model for shortened URLs.
 
+    Attributes:
+        id (int): Primary key.
+        original_url (str): Original long URL.
+        short_code (str): Generated short code.
+        created_at (datetime): Creation timestamp.
+        expired_at (datetime | None): Expiration timestamp.
+    """
     __tablename__ = "urls"
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     original_url = Column(String, nullable=False)

@@ -1,2 +1,2 @@
 class NotFoundError(Exception):
-    pass
+    """Raised when a requested entity is not found."""
