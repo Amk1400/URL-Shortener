@@ -17,7 +17,7 @@ def build_router() -> Router:
     service = UrlService(repository=repo, ttl_minutes=config.ttl_minutes)
     router = Router(service=service)
     router._db = db
-    router._scheduler = UrlCleanupScheduler(session_factory=db.get_session, interval_seconds=60)
+    router._scheduler = UrlCleanupScheduler(service=service, interval_seconds=60)
     return router
 
 

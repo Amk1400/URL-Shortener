@@ -5,7 +5,11 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
+import schedule
+
 from app.models.orm import URL
+from app.service.url_service import UrlService
+
 
 def delete_expired_urls(session_factory: Callable[[], Session]) -> int:
     """
@@ -14,11 +18,9 @@ def delete_expired_urls(session_factory: Callable[[], Session]) -> int:
     """
     session: Session = session_factory()
     try:
-        # select rows that have expired (expired_at not null and less than now)
         q = session.query(URL).filter(URL.expired_at != None, URL.expired_at < func.now())
         count = q.count()
         if count > 0:
-            # perform bulk delete
             q.delete(synchronize_session=False)
             session.commit()
         return count
@@ -31,44 +33,50 @@ def delete_expired_urls(session_factory: Callable[[], Session]) -> int:
 
 class UrlCleanupScheduler:
     """
-    Simple background scheduler that runs delete_expired_urls every `interval_seconds`.
-    The scheduler runs in a daemon thread so it won't block process shutdown.
+    Background scheduler using the `schedule` package.
+
+    Usage:
+        scheduler = UrlCleanupScheduler(session_factory=db.get_session, interval_seconds=60)
+        scheduler.start()
+        ...
+        scheduler.stop()
     """
 
-    def __init__(self, session_factory: Callable[[], Session], interval_seconds: int = 60):
-        """
-        :param session_factory: callable that returns a new SQLAlchemy Session (e.g. DatabaseSession.get_session)
-        :param interval_seconds: how often to run cleanup (in seconds). Default: 60 (1 minute).
-        """
-        self._session_factory = session_factory
-        self._interval = interval_seconds
+    def __init__(self, service: UrlService, interval_seconds: int = 60):
+        if interval_seconds < 1:
+            raise ValueError("interval_seconds must be >= 1")
+        self._service = service
+        self._interval = int(interval_seconds)
         self._stop_event = threading.Event()
         self._thread: Optional[threading.Thread] = None
 
-    def _loop(self):
-        # run at start, then sleep interval
+    def _job(self):
+        try:
+            deleted = self._service.delete_expired_urls()
+            if deleted:
+                print(f"[UrlCleanupScheduler] deleted {deleted} expired url(s)")
+        except Exception as exc:
+            print(f"[UrlCleanupScheduler] cleanup error: {exc}")
+
+    def _run_loop(self):
         while not self._stop_event.is_set():
-            try:
-                deleted = delete_expired_urls(self._session_factory)
-                # optional: print/logging here; keep minimal to avoid silent failures
-                if deleted:
-                    print(f"[UrlCleanupScheduler] deleted {deleted} expired url(s)")
-            except Exception as exc:
-                # swallow exceptions but print so they can be observed in logs
-                print(f"[UrlCleanupScheduler] cleanup error: {exc}")
-            # sleep but react quickly to stop event
-            finished = self._stop_event.wait(self._interval)
-            if finished:
-                break
+            schedule.run_pending()
+            # wait up to 1 second, return early if stop_event is set
+            self._stop_event.wait(1)
 
     def start(self):
+        """Start the scheduler (no-op if already running)."""
         if self._thread and self._thread.is_alive():
             return
+        
+        schedule.every(self._interval).seconds.do(self._job)
+
         self._stop_event.clear()
-        self._thread = threading.Thread(target=self._loop, daemon=True, name="url-cleanup-scheduler")
+        self._thread = threading.Thread(target=self._run_loop, daemon=True, name="url-cleanup-scheduler")
         self._thread.start()
 
     def stop(self):
+        """Stop the scheduler and wait briefly for the thread to finish."""
         self._stop_event.set()
         if self._thread:
             self._thread.join(timeout=5)
