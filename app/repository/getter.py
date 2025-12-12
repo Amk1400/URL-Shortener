@@ -1,25 +1,40 @@
-from sqlalchemy.orm import Session
+from typing import List, Optional, cast
+from sqlalchemy import ColumnElement
+from sqlalchemy.orm import Session, Query
 from sqlalchemy.exc import SQLAlchemyError
+
+from app.core.exception import NotFoundError
 from app.models.orm import URL
 
-def get_all(session_factory) -> list[URL]:
-    """Return all URL records."""
+
+def get_all(session_factory) -> List[URL] | None:
     session: Session = session_factory()
     try:
-        urls = session.query(URL).all()
-        return urls
+        query: Query[URL] = cast(Query[URL], session.query(URL))
+        result: List[URL] = query.all()
+        return result
     except SQLAlchemyError as exc:
         session.rollback()
         raise RuntimeError(f"Database error during GET /urls: {repr(exc)}")
     finally:
         session.close()
 
-def get_by_code(session_factory, code: str) -> URL | None:
-    """Fetch URL object by its short_code."""
+
+def get_by_code(session_factory, code: str) -> Optional[URL]:
     session: Session = session_factory()
     try:
-        return session.query(URL).filter(URL.short_code == code).first()
+        query: Query[URL] = cast(Query[URL], session.query(URL))
+
+        condition: ColumnElement[bool] = cast(ColumnElement[bool], URL.short_code == code)
+
+        result: Optional[URL] = query.filter(condition).first()
+        if not result:
+            raise NotFoundError(f"URL with code {code} not found")
+
+        return result
+
     except SQLAlchemyError as exc:
         raise RuntimeError(f"Database error while fetching code: {repr(exc)}")
+
     finally:
         session.close()

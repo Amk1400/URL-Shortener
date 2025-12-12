@@ -1,10 +1,10 @@
-from fastapi import APIRouter, status
+from fastapi import APIRouter
+from fastapi.responses import RedirectResponse
 
 from app.service.url_service import UrlService
-from app.api.schemas.responses import ApiSuccess, ApiFailure, UrlResponse
-
-from fastapi.responses import RedirectResponse, JSONResponse
-from fastapi.encoders import jsonable_encoder
+from app.api.schemas.responses import ApiSuccess, ApiFailure
+from app.api.schemas.response_methods import wrap_success_url, res_success, res_404, res_500
+from app.repository.getter import NotFoundError
 
 def create_getter_router(service: UrlService) -> APIRouter:
     router = APIRouter()
@@ -20,26 +20,10 @@ def create_getter_router(service: UrlService) -> APIRouter:
     def get_all_urls():
         try:
             urls = service.get_all_urls()
-
-            data = [UrlResponse(
-                id=u.id,
-                original_url=u.original_url,
-                short_code=u.short_code,
-                created_at=u.created_at,
-                expired_at=u.expired_at
-            ) for u in urls]
-                
-            return JSONResponse(
-                status_code=status.HTTP_200_OK,
-                content=jsonable_encoder(ApiSuccess(status="success", data=data))
-            )
+            data = [wrap_success_url(u) for u in urls]
+            return res_success(data)
         except Exception as exc:
-            return JSONResponse(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                content=jsonable_encoder(
-                    ApiFailure(status="failure", message=f"Internal server error: {str(exc)}")
-                ),
-            )
+            return res_500(str(exc))
 
     @router.get(
         "/u/{code}",
@@ -53,24 +37,9 @@ def create_getter_router(service: UrlService) -> APIRouter:
         try:
             url_obj = service.get_original_url(code)
             return RedirectResponse(url=url_obj.original_url, status_code=302)
+        except NotFoundError as nf:
+            return res_404(str(nf))
         except Exception as exc:
-            message = str(exc)
-
-            if "URL not found" in message:
-                return JSONResponse(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    content=jsonable_encoder(ApiFailure(
-                        status="failure",
-                        message="URL not found"
-                    )),
-                )
-
-            return JSONResponse(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                content=jsonable_encoder(ApiFailure(
-                    status="failure",
-                    message=f"Internal server error: {message}"
-                )),
-            )
+            return res_500(str(exc))
 
     return router
